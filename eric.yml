@@ -1,0 +1,43 @@
+--- 
+- 
+  name: "install java 8"
+  yum: "name=java-1.8.0-openjdk.x86_64 state=latest"
+- 
+  group: "name=tomcat state=present"
+  name: "create tomcat group"
+- 
+  name: "create tomcat user"
+  user: "name=tomcat group=wheel state=present"
+- 
+  file: "path=/tomcat owner=tomcat group=tomcat state=directory mode=0755"
+  name: "create tomcat directory in root"
+- 
+  get_url: 
+    dest: /tomcat
+    url: "{{ tomcat7_source }}"
+  name: "download tomcat"
+- 
+  name: "extract apache-tomcat-7.0.61.tar.gz"
+  unarchive: 
+    dest: /tomcat/
+    remote_src: true
+    src: "/tomcat/{{ tomcat7_pkg }}"
+- 
+  get_url: "url={{ jenkins_pkg }} dest=/tomcat/apache-tomcat-7.0.61/webapps"
+  name: "download jenkins"
+- 
+  copy: "src=roles/tomcat/files/tomcat-users.xml dest=/tomcat/apache-tomcat-7.0.61/conf owner=tomcat group=tomcat mode=0755"
+  name: "copy tomcat-users.xml to tomcat_home/conf"
+- 
+  file: "path=/tomcat/tomcat-7.0 state=absent"
+  name: "delete tomcat-7.0 directory if present"
+- 
+  command: "mv /tomcat/apache-tomcat-7.0.61 /tomcat/tomcat-7.0"
+  name: "rename apache-tomcat to tomcat-7.0"
+- 
+  file: "path=/tomcat owner=tomcat group=tomcat mode=0755 recurse=yes"
+  name: "change apache-tomcat-7 ownership to tomcat"
+- 
+  copy: "src=roles/tomcat/files/tomcat.service dest=/etc/systemd/system owner=root group=root mode=0755"
+  name: "copy tomcat.service to systemd"
+
